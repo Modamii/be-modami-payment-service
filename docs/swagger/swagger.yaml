@@ -1,0 +1,1076 @@
+definitions:
+  dto.AdminCreditAdjustRequest:
+    properties:
+      amount:
+        type: integer
+      description:
+        type: string
+      user_id:
+        type: string
+    required:
+    - amount
+    - description
+    - user_id
+    type: object
+  dto.CreatePaymentRequest:
+    properties:
+      amount:
+        type: integer
+      method:
+        type: string
+      purpose:
+        type: string
+      purpose_ref_id:
+        type: string
+    required:
+    - amount
+    - method
+    - purpose
+    type: object
+  dto.PurchaseCreditRequest:
+    properties:
+      idempotency_key:
+        type: string
+      package_code:
+        type: string
+      payment_method:
+        type: string
+    required:
+    - package_code
+    - payment_method
+    type: object
+  dto.SubscribeRequest:
+    properties:
+      billing_cycle:
+        enum:
+        - monthly
+        - yearly
+        type: string
+      package_code:
+        type: string
+      payment_method:
+        type: string
+    required:
+    - billing_cycle
+    - package_code
+    - payment_method
+    type: object
+  dto.UnlockContactRequest:
+    properties:
+      idempotency_key:
+        type: string
+      product_id:
+        type: string
+      seller_id:
+        type: string
+    required:
+    - product_id
+    - seller_id
+    type: object
+  dto.UpgradeSubscriptionRequest:
+    properties:
+      billing_cycle:
+        enum:
+        - monthly
+        - yearly
+        type: string
+      package_code:
+        type: string
+      payment_method:
+        type: string
+    required:
+    - billing_cycle
+    - package_code
+    - payment_method
+    type: object
+info:
+  contact: {}
+  description: Payment service API (Gin)
+  title: Modami Payment Service
+  version: "1.0"
+paths:
+  /admin/credits/adjust:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Admin credit adjust request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminCreditAdjustRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin adjust user credits
+      tags:
+      - Admin
+  /credits/balance:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.CreditBalanceResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user's credit balance
+      tags:
+      - Credits
+  /credits/purchase:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint is not implemented; use subscriptions flow instead.
+      parameters:
+      - description: Purchase credit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PurchaseCreditRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "501":
+          description: Not Implemented
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Purchase credits (deprecated)
+      tags:
+      - Credits
+  /credits/transactions:
+    get:
+      parameters:
+      - default: 20
+        description: Page size
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by transaction type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.CreditTransactionListResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List credit transactions for current user
+      tags:
+      - Credits
+  /invoices:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped []dto.InvoiceResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List invoices for current user
+      tags:
+      - Invoices
+  /invoices/{id}:
+    get:
+      parameters:
+      - description: Invoice ID (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.InvoiceResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get invoice by ID
+      tags:
+      - Invoices
+  /invoices/{id}/download:
+    get:
+      parameters:
+      - description: Invoice ID (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: invoice text
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Download invoice (plain text)
+      tags:
+      - Invoices
+  /packages:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped []dto.PackageResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List available packages
+      tags:
+      - Packages
+  /packages/{code}:
+    get:
+      parameters:
+      - description: Package code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.PackageResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get package by code
+      tags:
+      - Packages
+  /payments:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Idempotency key
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Create payment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Wrapped dto.PaymentResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a payment transaction
+      tags:
+      - Payments
+  /payments/{id}:
+    get:
+      parameters:
+      - description: Payment ID (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.PaymentResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payment by ID
+      tags:
+      - Payments
+  /payments/{id}/status:
+    get:
+      parameters:
+      - description: Payment ID (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.PaymentStatusResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payment status by ID
+      tags:
+      - Payments
+  /payments/history:
+    get:
+      parameters:
+      - default: 20
+        description: Page size
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.PaymentHistoryResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List payment history for current user
+      tags:
+      - Payments
+  /payments/return/momo:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: MoMo return URL
+      tags:
+      - Webhooks
+  /payments/return/vnpay:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: VNPay return URL
+      tags:
+      - Webhooks
+  /payments/return/zalopay:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: ZaloPay return URL
+      tags:
+      - Webhooks
+  /subscriptions:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Idempotency key
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Subscribe request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubscribeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Wrapped dto.SubscriptionResponse (with payment_url)
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Subscribe to a package (creates pending subscription + payment URL)
+      tags:
+      - Subscriptions
+  /subscriptions/current:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.SubscriptionResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current subscription for current user
+      tags:
+      - Subscriptions
+  /subscriptions/current/cancel:
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.CancelSubscriptionResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disable auto-renew for current subscription
+      tags:
+      - Subscriptions
+  /subscriptions/current/renew:
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Re-enable auto-renew for current subscription
+      tags:
+      - Subscriptions
+  /subscriptions/history:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped []dto.SubscriptionResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List subscription history for current user
+      tags:
+      - Subscriptions
+  /subscriptions/upgrade:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Idempotency key
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Upgrade request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpgradeSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Wrapped dto.SubscriptionResponse (with payment_url)
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upgrade subscription (creates new pending subscription + payment URL)
+      tags:
+      - Subscriptions
+  /unlocks:
+    get:
+      parameters:
+      - default: 20
+        description: Page size
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.UnlockListResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List unlocks for current user
+      tags:
+      - Unlocks
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Idempotency key
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Unlock request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UnlockContactRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Wrapped dto.UnlockContactResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Unlock a product contact (deduct credits)
+      tags:
+      - Unlocks
+  /unlocks/check/{product_id}:
+    get:
+      parameters:
+      - description: Product ID (uuid)
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Wrapped dto.CheckUnlockResponse
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Check if product already unlocked
+      tags:
+      - Unlocks
+  /webhooks/momo:
+    post:
+      consumes:
+      - application/json
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: MoMo callback payload
+        in: body
+        name: payload
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: MoMo IPN callback
+      tags:
+      - Webhooks
+  /webhooks/vnpay:
+    post:
+      consumes:
+      - application/json
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: VNPay callback payload (form or JSON)
+        in: body
+        name: payload
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: VNPay format response
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: VNPay IPN callback
+      tags:
+      - Webhooks
+  /webhooks/zalopay:
+    post:
+      consumes:
+      - application/json
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: ZaloPay callback payload
+        in: body
+        name: payload
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: ZaloPay callback
+      tags:
+      - Webhooks
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

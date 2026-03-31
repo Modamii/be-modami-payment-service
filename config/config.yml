@@ -1,0 +1,63 @@
+app:
+  env: development
+
+server:
+  port: "8080"
+
+grpc:
+  port: "9090"
+
+database:
+  host: "localhost"
+  port: "5432"
+  name: "modami_payment"
+  user: "postgres"
+  password: "postgres"
+  sslmode: "disable"
+  maxOpenConns: 25
+  maxIdleConns: 10
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+
+kafka:
+  brokers:
+    - "localhost:9092"
+  groupId: "payment-service"
+
+jwt:
+  secret: "dev_secret_change_me"
+
+vnpay:
+  tmnCode: ""
+  hashSecret: ""
+  paymentUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+  returnUrl: "http://localhost:8080/api/v1/payments/return/vnpay"
+  ipnUrl: "http://localhost:8080/api/v1/webhooks/vnpay"
+  queryUrl: ""
+
+momo:
+  partnerCode: ""
+  accessKey: ""
+  secretKey: ""
+  apiEndpoint: "https://test-payment.momo.vn/v2/gateway/api"
+  returnUrl: "http://localhost:8080/api/v1/payments/return/momo"
+  notifyUrl: "http://localhost:8080/api/v1/webhooks/momo"
+
+zalopay:
+  appId: ""
+  key1: ""
+  key2: ""
+  createUrl: ""
+  queryUrl: ""
+  refundUrl: ""
+  callbackUrl: "http://localhost:8080/api/v1/webhooks/zalopay"
+  returnUrl: "http://localhost:8080/api/v1/payments/return/zalopay"
+
+bankTransfer:
+  bankName: "Example Bank"
+  accountNumber: "0000000000"
+  accountName: "MODAMI"
+  branch: "HCM"

@@ -22,6 +22,15 @@ func NewInvoiceHandler(invoiceUC *usecases.InvoiceUsecase) *InvoiceHandler {
 }
 
 // ListInvoices handles GET /api/v1/invoices
+// @Summary List invoices for current user
+// @Tags Invoices
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Wrapped []dto.InvoiceResponse"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /invoices [get]
 func (h *InvoiceHandler) ListInvoices(c *gin.Context) {
 	userID := mustUserID(c)
 	invoices, err := h.invoiceUC.ListByUser(c.Request.Context(), userID)
@@ -37,6 +46,17 @@ func (h *InvoiceHandler) ListInvoices(c *gin.Context) {
 }
 
 // GetInvoice handles GET /api/v1/invoices/:id
+// @Summary Get invoice by ID
+// @Tags Invoices
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Invoice ID (uuid)"
+// @Success 200 {object} map[string]interface{} "Wrapped dto.InvoiceResponse"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /invoices/{id} [get]
 func (h *InvoiceHandler) GetInvoice(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -52,6 +72,17 @@ func (h *InvoiceHandler) GetInvoice(c *gin.Context) {
 }
 
 // DownloadInvoice handles GET /api/v1/invoices/:id/download
+// @Summary Download invoice (plain text)
+// @Tags Invoices
+// @Produce plain
+// @Security BearerAuth
+// @Param id path string true "Invoice ID (uuid)"
+// @Success 200 {string} string "invoice text"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /invoices/{id}/download [get]
 func (h *InvoiceHandler) DownloadInvoice(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

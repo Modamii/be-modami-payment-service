@@ -23,6 +23,15 @@ func NewCreditHandler(creditUC *usecases.CreditUsecase) *CreditHandler {
 }
 
 // GetBalance handles GET /api/v1/credits/balance
+// @Summary Get current user's credit balance
+// @Tags Credits
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Wrapped dto.CreditBalanceResponse"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /credits/balance [get]
 func (h *CreditHandler) GetBalance(c *gin.Context) {
 	userID := mustUserID(c)
 	wallet, err := h.creditUC.GetBalance(c.Request.Context(), userID)
@@ -34,6 +43,18 @@ func (h *CreditHandler) GetBalance(c *gin.Context) {
 }
 
 // GetTransactions handles GET /api/v1/credits/transactions
+// @Summary List credit transactions for current user
+// @Tags Credits
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "Page size" default(20)
+// @Param offset query int false "Offset" default(0)
+// @Param type query string false "Filter by transaction type"
+// @Success 200 {object} map[string]interface{} "Wrapped dto.CreditTransactionListResponse"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /credits/transactions [get]
 func (h *CreditHandler) GetTransactions(c *gin.Context) {
 	userID := mustUserID(c)
 	limit := queryInt(c, "limit", 20)
@@ -53,6 +74,18 @@ func (h *CreditHandler) GetTransactions(c *gin.Context) {
 }
 
 // Purchase handles POST /api/v1/credits/purchase
+// @Summary Purchase credits (deprecated)
+// @Description This endpoint is not implemented; use subscriptions flow instead.
+// @Tags Credits
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.PurchaseCreditRequest true "Purchase credit request"
+// @Success 501 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Router /credits/purchase [post]
 func (h *CreditHandler) Purchase(c *gin.Context) {
 	var req dto.PurchaseCreditRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -64,6 +97,18 @@ func (h *CreditHandler) Purchase(c *gin.Context) {
 }
 
 // AdminAdjust handles POST /api/v1/admin/credits/adjust
+// @Summary Admin adjust user credits
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.AdminCreditAdjustRequest true "Admin credit adjust request"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /admin/credits/adjust [post]
 func (h *CreditHandler) AdminAdjust(c *gin.Context) {
 	var req dto.AdminCreditAdjustRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -105,101 +108,68 @@ type JWTConfig struct {
 	Secret string
 }
 
-// Load reads configuration from environment variables and .env file.
+// Load reads configuration from a YAML file and environment variables (env overrides file).
 func Load() (*Config, error) {
-	viper.SetConfigFile(".env")
-	viper.SetConfigType("env")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v := viper.New()
 
-	// Read .env file — ignore error if not present (env vars may be set directly).
-	_ = viper.ReadInConfig()
+	// Defaults
+	v.SetDefault("app.env", "development")
+	v.SetDefault("server.port", "8080")
+	v.SetDefault("grpc.port", "9090")
+	v.SetDefault("database.sslmode", "disable")
+	v.SetDefault("database.maxOpenConns", 25)
+	v.SetDefault("database.maxIdleConns", 10)
+	v.SetDefault("kafka.brokers", []string{})
+	v.SetDefault("kafka.groupId", "payment-service")
 
-	cfg := &Config{
-		App: AppConfig{
-			Env: viper.GetString("APP_ENV"),
-		},
-		Server: ServerConfig{
-			Port: viper.GetString("SERVER_PORT"),
-		},
-		Database: DatabaseConfig{
-			Host:         viper.GetString("DB_HOST"),
-			Port:         viper.GetString("DB_PORT"),
-			Name:         viper.GetString("DB_NAME"),
-			User:         viper.GetString("DB_USER"),
-			Password:     viper.GetString("DB_PASSWORD"),
-			SSLMode:      viper.GetString("DB_SSLMODE"),
-			MaxOpenConns: viper.GetInt("DB_MAX_OPEN_CONNS"),
-			MaxIdleConns: viper.GetInt("DB_MAX_IDLE_CONNS"),
-		},
-		Redis: RedisConfig{
-			Addr:     viper.GetString("REDIS_ADDR"),
-			Password: viper.GetString("REDIS_PASSWORD"),
-			DB:       viper.GetInt("REDIS_DB"),
-		},
-		Kafka: KafkaConfig{
-			Brokers: strings.Split(viper.GetString("KAFKA_BROKERS"), ","),
-			GroupID: viper.GetString("KAFKA_GROUP_ID"),
-		},
-		GRPC: GRPCConfig{
-			Port: viper.GetString("GRPC_PORT"),
-		},
-		VNPay: VNPayConfig{
-			TMNCode:    viper.GetString("VNPAY_TMN_CODE"),
-			HashSecret: viper.GetString("VNPAY_HASH_SECRET"),
-			PaymentURL: viper.GetString("VNPAY_PAYMENT_URL"),
-			ReturnURL:  viper.GetString("VNPAY_RETURN_URL"),
-			IPNURL:     viper.GetString("VNPAY_IPN_URL"),
-			QueryURL:   viper.GetString("VNPAY_QUERY_URL"),
-		},
-		MoMo: MoMoConfig{
-			PartnerCode: viper.GetString("MOMO_PARTNER_CODE"),
-			AccessKey:   viper.GetString("MOMO_ACCESS_KEY"),
-			SecretKey:   viper.GetString("MOMO_SECRET_KEY"),
-			APIEndpoint: viper.GetString("MOMO_API_ENDPOINT"),
-			ReturnURL:   viper.GetString("MOMO_RETURN_URL"),
-			NotifyURL:   viper.GetString("MOMO_NOTIFY_URL"),
-		},
-		ZaloPay: ZaloPayConfig{
-			AppID:       viper.GetString("ZALOPAY_APP_ID"),
-			Key1:        viper.GetString("ZALOPAY_KEY1"),
-			Key2:        viper.GetString("ZALOPAY_KEY2"),
-			CreateURL:   viper.GetString("ZALOPAY_CREATE_URL"),
-			QueryURL:    viper.GetString("ZALOPAY_QUERY_URL"),
-			RefundURL:   viper.GetString("ZALOPAY_REFUND_URL"),
-			CallbackURL: viper.GetString("ZALOPAY_CALLBACK_URL"),
-			ReturnURL:   viper.GetString("ZALOPAY_RETURN_URL"),
-		},
-		BankTransfer: BankTransferConfig{
-			BankName:      viper.GetString("BANK_NAME"),
-			AccountNumber: viper.GetString("BANK_ACCOUNT_NUMBER"),
-			AccountName:   viper.GetString("BANK_ACCOUNT_NAME"),
-			Branch:        viper.GetString("BANK_BRANCH"),
-		},
-		JWT: JWTConfig{
-			Secret: viper.GetString("JWT_SECRET"),
-		},
+	// File path (override via CONFIG_FILE)
+	cfgFile := v.GetString("config.file")
+	if cfgFile == "" {
+		cfgFile = "config/config.yml"
+	}
+	if envPath := strings.TrimSpace(strings.ReplaceAll(getenv("CONFIG_FILE"), "\\", "/")); envPath != "" {
+		cfgFile = envPath
 	}
 
-	// Set defaults.
-	if cfg.Server.Port == "" {
-		cfg.Server.Port = "8080"
-	}
-	if cfg.GRPC.Port == "" {
-		cfg.GRPC.Port = "9090"
-	}
-	if cfg.Database.SSLMode == "" {
-		cfg.Database.SSLMode = "disable"
-	}
-	if cfg.Database.MaxOpenConns == 0 {
-		cfg.Database.MaxOpenConns = 25
-	}
-	if cfg.Database.MaxIdleConns == 0 {
-		cfg.Database.MaxIdleConns = 10
-	}
-	if cfg.App.Env == "" {
-		cfg.App.Env = "development"
+	v.SetConfigFile(cfgFile)
+	switch strings.ToLower(filepath.Ext(cfgFile)) {
+	case ".yml", ".yaml":
+	default:
+		return nil, fmt.Errorf("unsupported config file type: %s", cfgFile)
 	}
 
-	return cfg, nil
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("read config %s: %w", cfgFile, err)
+	}
+
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("unmarshal config: %w", err)
+	}
+
+	// Backward-compatible: if kafka.brokers provided as comma string via env
+	if brokers := strings.TrimSpace(getenv("KAFKA_BROKERS")); brokers != "" {
+		cfg.Kafka.Brokers = splitCSV(brokers)
+	}
+	if group := strings.TrimSpace(getenv("KAFKA_GROUP_ID")); group != "" {
+		cfg.Kafka.GroupID = group
+	}
+
+	return &cfg, nil
+}
+
+func getenv(k string) string { return strings.TrimSpace(os.Getenv(k)) }
+
+func splitCSV(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if t := strings.TrimSpace(p); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
 }

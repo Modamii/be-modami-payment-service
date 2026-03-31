@@ -20,6 +20,20 @@ func NewPaymentHandler(paymentUC *usecases.PaymentUsecase) *PaymentHandler {
 }
 
 // CreatePayment handles POST /api/v1/payments
+// @Summary Create a payment transaction
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Idempotency-Key header string false "Idempotency key"
+// @Param request body dto.CreatePaymentRequest true "Create payment request"
+// @Success 201 {object} map[string]interface{} "Wrapped dto.PaymentResponse"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 409 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /payments [post]
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	userID := mustUserID(c)
 	var req dto.CreatePaymentRequest
@@ -66,6 +80,17 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 }
 
 // GetPayment handles GET /api/v1/payments/:id
+// @Summary Get payment by ID
+// @Tags Payments
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Payment ID (uuid)"
+// @Success 200 {object} map[string]interface{} "Wrapped dto.PaymentResponse"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /payments/{id} [get]
 func (h *PaymentHandler) GetPayment(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -93,6 +118,17 @@ func (h *PaymentHandler) GetPayment(c *gin.Context) {
 }
 
 // GetPaymentStatus handles GET /api/v1/payments/:id/status
+// @Summary Get payment status by ID
+// @Tags Payments
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Payment ID (uuid)"
+// @Success 200 {object} map[string]interface{} "Wrapped dto.PaymentStatusResponse"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /payments/{id}/status [get]
 func (h *PaymentHandler) GetPaymentStatus(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -108,6 +144,17 @@ func (h *PaymentHandler) GetPaymentStatus(c *gin.Context) {
 }
 
 // GetHistory handles GET /api/v1/payments/history
+// @Summary List payment history for current user
+// @Tags Payments
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "Page size" default(20)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} map[string]interface{} "Wrapped dto.PaymentHistoryResponse"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /payments/history [get]
 func (h *PaymentHandler) GetHistory(c *gin.Context) {
 	userID := mustUserID(c)
 	limit := queryInt(c, "limit", 20)

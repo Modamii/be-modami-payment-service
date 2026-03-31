@@ -20,6 +20,20 @@ func NewUnlockHandler(unlockUC *usecases.UnlockUsecase) *UnlockHandler {
 }
 
 // Unlock handles POST /api/v1/unlocks
+// @Summary Unlock a product contact (deduct credits)
+// @Tags Unlocks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Idempotency-Key header string false "Idempotency key"
+// @Param request body dto.UnlockContactRequest true "Unlock request"
+// @Success 201 {object} map[string]interface{} "Wrapped dto.UnlockContactResponse"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 409 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /unlocks [post]
 func (h *UnlockHandler) Unlock(c *gin.Context) {
 	buyerID := mustUserID(c)
 
@@ -62,6 +76,17 @@ func (h *UnlockHandler) Unlock(c *gin.Context) {
 }
 
 // ListUnlocks handles GET /api/v1/unlocks
+// @Summary List unlocks for current user
+// @Tags Unlocks
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "Page size" default(20)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} map[string]interface{} "Wrapped dto.UnlockListResponse"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /unlocks [get]
 func (h *UnlockHandler) ListUnlocks(c *gin.Context) {
 	buyerID := mustUserID(c)
 	limit := queryInt(c, "limit", 20)
@@ -88,6 +113,17 @@ func (h *UnlockHandler) ListUnlocks(c *gin.Context) {
 }
 
 // CheckUnlock handles GET /api/v1/unlocks/check/:product_id
+// @Summary Check if product already unlocked
+// @Tags Unlocks
+// @Produce json
+// @Security BearerAuth
+// @Param product_id path string true "Product ID (uuid)"
+// @Success 200 {object} map[string]interface{} "Wrapped dto.CheckUnlockResponse"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /unlocks/check/{product_id} [get]
 func (h *UnlockHandler) CheckUnlock(c *gin.Context) {
 	buyerID := mustUserID(c)
 	productID, err := uuid.Parse(c.Param("product_id"))

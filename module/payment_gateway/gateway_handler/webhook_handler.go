@@ -18,6 +18,14 @@ func NewWebhookHandler(paymentUC *usecases.PaymentUsecase) *WebhookHandler {
 }
 
 // VNPayIPN handles POST /api/v1/webhooks/vnpay
+// @Summary VNPay IPN callback
+// @Tags Webhooks
+// @Accept json
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param payload body object false "VNPay callback payload (form or JSON)"
+// @Success 200 {object} map[string]string "VNPay format response"
+// @Router /webhooks/vnpay [post]
 func (h *WebhookHandler) VNPayIPN(c *gin.Context) {
 	params := collectParams(c)
 	if err := h.paymentUC.HandleVNPayCallback(c.Request.Context(), params); err != nil {
@@ -29,6 +37,12 @@ func (h *WebhookHandler) VNPayIPN(c *gin.Context) {
 }
 
 // VNPayReturn handles GET /api/v1/payments/return/vnpay
+// @Summary VNPay return URL
+// @Tags Webhooks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /payments/return/vnpay [get]
 func (h *WebhookHandler) VNPayReturn(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -44,6 +58,15 @@ func (h *WebhookHandler) VNPayReturn(c *gin.Context) {
 }
 
 // MoMoIPN handles POST /api/v1/webhooks/momo
+// @Summary MoMo IPN callback
+// @Tags Webhooks
+// @Accept json
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param payload body object false "MoMo callback payload"
+// @Success 204 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /webhooks/momo [post]
 func (h *WebhookHandler) MoMoIPN(c *gin.Context) {
 	params := collectParams(c)
 	if err := h.paymentUC.HandleMoMoCallback(c.Request.Context(), params); err != nil {
@@ -54,6 +77,12 @@ func (h *WebhookHandler) MoMoIPN(c *gin.Context) {
 }
 
 // MoMoReturn handles GET /api/v1/payments/return/momo
+// @Summary MoMo return URL
+// @Tags Webhooks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /payments/return/momo [get]
 func (h *WebhookHandler) MoMoReturn(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -69,6 +98,14 @@ func (h *WebhookHandler) MoMoReturn(c *gin.Context) {
 }
 
 // ZaloPayCallback handles POST /api/v1/webhooks/zalopay
+// @Summary ZaloPay callback
+// @Tags Webhooks
+// @Accept json
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param payload body object false "ZaloPay callback payload"
+// @Success 200 {object} map[string]interface{}
+// @Router /webhooks/zalopay [post]
 func (h *WebhookHandler) ZaloPayCallback(c *gin.Context) {
 	params := collectParams(c)
 	if err := h.paymentUC.HandleZaloPayCallback(c.Request.Context(), params); err != nil {
@@ -79,6 +116,12 @@ func (h *WebhookHandler) ZaloPayCallback(c *gin.Context) {
 }
 
 // ZaloPayReturn handles GET /api/v1/payments/return/zalopay
+// @Summary ZaloPay return URL
+// @Tags Webhooks
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /payments/return/zalopay [get]
 func (h *WebhookHandler) ZaloPayReturn(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
