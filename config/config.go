@@ -32,10 +32,12 @@ type AppConfig struct {
 	Port            int    `mapstructure:"port"`
 	Host            string `mapstructure:"host"`
 	SwaggerHost     string `mapstructure:"swagger_host"`
-	ShutdownTimeout string `mapstructure:"shutdown_timeout"`
-	ReadTimeout     string `mapstructure:"read_timeout"`
-	WriteTimeout    string `mapstructure:"write_timeout"`
-	IdleTimeout     string `mapstructure:"idle_timeout"`
+	ShutdownTimeout  string   `mapstructure:"shutdown_timeout"`
+	ReadTimeout      string   `mapstructure:"read_timeout"`
+	WriteTimeout     string   `mapstructure:"write_timeout"`
+	IdleTimeout      string   `mapstructure:"idle_timeout"`
+	AllowedOrigins   []string `mapstructure:"allowed_origins"`
+	AllowCredentials bool     `mapstructure:"allow_credentials"`
 }
 
 func (a AppConfig) ListenAddr() string {
@@ -174,6 +176,8 @@ func Load() (*Config, error) {
 	v.SetDefault("app.read_timeout", "30s")
 	v.SetDefault("app.write_timeout", "30s")
 	v.SetDefault("app.idle_timeout", "120s")
+	v.SetDefault("app.allow_credentials", true)
+	v.SetDefault("app.allowed_origins", []string{"http://localhost:5173", "http://localhost:3000", "http://localhost:8080", "http://localhost:8081"})
 	v.SetDefault("grpc.port", "9090")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("database.maxOpenConns", 25)
