@@ -5,13 +5,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 // Config holds all application configuration.
 type Config struct {
-	Server       ServerConfig
+	App          AppConfig
 	Database     DatabaseConfig
 	Redis        RedisConfig
 	Kafka        KafkaConfig
@@ -21,15 +22,64 @@ type Config struct {
 	ZaloPay      ZaloPayConfig
 	BankTransfer BankTransferConfig
 	JWT          JWTConfig
-	App          AppConfig
 }
 
 type AppConfig struct {
-	Env string
+	Name            string `mapstructure:"name"`
+	Version         string `mapstructure:"version"`
+	Environment     string `mapstructure:"environment"`
+	Debug           bool   `mapstructure:"debug"`
+	Port            int    `mapstructure:"port"`
+	Host            string `mapstructure:"host"`
+	SwaggerHost     string `mapstructure:"swagger_host"`
+	ShutdownTimeout string `mapstructure:"shutdown_timeout"`
+	ReadTimeout     string `mapstructure:"read_timeout"`
+	WriteTimeout    string `mapstructure:"write_timeout"`
+	IdleTimeout     string `mapstructure:"idle_timeout"`
 }
 
-type ServerConfig struct {
-	Port string
+func (a AppConfig) ListenAddr() string {
+	host := strings.TrimSpace(a.Host)
+	if host == "" {
+		host = "0.0.0.0"
+	}
+	port := a.Port
+	if port <= 0 {
+		port = 8080
+	}
+	return fmt.Sprintf("%s:%d", host, port)
+}
+
+func (a AppConfig) GetShutdownTimeout() time.Duration {
+	d, err := time.ParseDuration(a.ShutdownTimeout)
+	if err != nil {
+		return 30 * time.Second
+	}
+	return d
+}
+
+func (a AppConfig) GetReadTimeout() time.Duration {
+	d, err := time.ParseDuration(a.ReadTimeout)
+	if err != nil {
+		return 30 * time.Second
+	}
+	return d
+}
+
+func (a AppConfig) GetWriteTimeout() time.Duration {
+	d, err := time.ParseDuration(a.WriteTimeout)
+	if err != nil {
+		return 30 * time.Second
+	}
+	return d
+}
+
+func (a AppConfig) GetIdleTimeout() time.Duration {
+	d, err := time.ParseDuration(a.IdleTimeout)
+	if err != nil {
+		return 120 * time.Second
+	}
+	return d
 }
 
 type DatabaseConfig struct {
@@ -113,8 +163,17 @@ func Load() (*Config, error) {
 	v := viper.New()
 
 	// Defaults
-	v.SetDefault("app.env", "development")
-	v.SetDefault("server.port", "8080")
+	v.SetDefault("app.name", "be-modami-payment-service")
+	v.SetDefault("app.version", "1.0.0")
+	v.SetDefault("app.environment", "development")
+	v.SetDefault("app.debug", false)
+	v.SetDefault("app.port", 8080)
+	v.SetDefault("app.host", "0.0.0.0")
+	v.SetDefault("app.swagger_host", "localhost:8080")
+	v.SetDefault("app.shutdown_timeout", "30s")
+	v.SetDefault("app.read_timeout", "30s")
+	v.SetDefault("app.write_timeout", "30s")
+	v.SetDefault("app.idle_timeout", "120s")
 	v.SetDefault("grpc.port", "9090")
 	v.SetDefault("database.sslmode", "disable")
 	v.SetDefault("database.maxOpenConns", 25)

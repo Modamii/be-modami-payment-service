@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	_ "github.com/modami/be-payment-service/docs/swagger"
 	"github.com/modami/be-payment-service/config"
+	docs "github.com/modami/be-payment-service/docs/swagger"
 	"github.com/modami/be-payment-service/module/core/repository/postgres"
 	"github.com/modami/be-payment-service/module/core/storage"
 	"github.com/modami/be-payment-service/module/core/usecases"
@@ -39,10 +39,12 @@ func main() {
 		panic(err)
 	}
 
-	logger.Init(cfg.App.Env)
+	docs.SwaggerInfo.Host = cfg.App.SwaggerHost
+
+	logger.Init(cfg.App.Environment)
 	defer logger.Sync()
 
-	if cfg.App.Env == "production" {
+	if cfg.App.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -143,7 +145,7 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:              ":" + cfg.Server.Port,
+		Addr:              cfg.App.ListenAddr(),
 		Handler:           r,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
