@@ -17,6 +17,14 @@ app:
     - "http://localhost:8080"
     - "http://localhost:8081"
 
+observability:
+  service_name: "payment-service"
+  service_version: "1.0.0"
+  environment: "development"
+  log_level: "info"
+  otlp_endpoint: ""
+  otlp_insecure: true
+
 grpc:
   port: "9090"
 

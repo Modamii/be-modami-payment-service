@@ -12,16 +12,17 @@ import (
 
 // Config holds all application configuration.
 type Config struct {
-	App          AppConfig
-	Database     DatabaseConfig
-	Redis        RedisConfig
-	Kafka        KafkaConfig
-	GRPC         GRPCConfig
-	VNPay        VNPayConfig
-	MoMo         MoMoConfig
-	ZaloPay      ZaloPayConfig
-	BankTransfer BankTransferConfig
-	JWT          JWTConfig
+	App           AppConfig           `mapstructure:"app"`
+	Observability ObservabilityConfig `mapstructure:"observability"`
+	Database      DatabaseConfig
+	Redis         RedisConfig
+	Kafka         KafkaConfig
+	GRPC          GRPCConfig
+	VNPay         VNPayConfig
+	MoMo          MoMoConfig
+	ZaloPay       ZaloPayConfig
+	BankTransfer  BankTransferConfig
+	JWT           JWTConfig
 }
 
 type AppConfig struct {
@@ -160,6 +161,15 @@ type JWTConfig struct {
 	Secret string
 }
 
+type ObservabilityConfig struct {
+	ServiceName    string `mapstructure:"service_name"`
+	ServiceVersion string `mapstructure:"service_version"`
+	Environment    string `mapstructure:"environment"`
+	LogLevel       string `mapstructure:"log_level"`
+	OTLPEndpoint   string `mapstructure:"otlp_endpoint"`
+	OTLPInsecure   bool   `mapstructure:"otlp_insecure"`
+}
+
 // Load reads configuration from a YAML file and environment variables (env overrides file).
 func Load() (*Config, error) {
 	v := viper.New()
@@ -184,6 +194,11 @@ func Load() (*Config, error) {
 	v.SetDefault("database.maxIdleConns", 10)
 	v.SetDefault("kafka.brokers", []string{})
 	v.SetDefault("kafka.groupId", "payment-service")
+	v.SetDefault("observability.service_name", "payment-service")
+	v.SetDefault("observability.service_version", "1.0.0")
+	v.SetDefault("observability.environment", "development")
+	v.SetDefault("observability.log_level", "info")
+	v.SetDefault("observability.otlp_insecure", true)
 
 	// File path (override via CONFIG_FILE)
 	cfgFile := v.GetString("config.file")
