@@ -1,6 +1,7 @@
--- +migrate Up
+-- +goose Up
 
 -- Shared updated_at trigger function
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -8,6 +9,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 -- credit_wallets
 CREATE TABLE credit_wallets (
@@ -209,3 +211,16 @@ CREATE TABLE outbox_events (
 );
 CREATE INDEX idx_outbox_pending ON outbox_events(status, id)
     WHERE status = 'pending';
+
+-- +goose Down
+DROP TABLE IF EXISTS outbox_events;
+DROP TABLE IF EXISTS invoices;
+DROP TABLE IF EXISTS refunds;
+DROP TABLE IF EXISTS payment_transactions;
+DROP TABLE IF EXISTS subscription_events;
+DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS packages;
+DROP TABLE IF EXISTS contact_unlocks;
+DROP TABLE IF EXISTS credit_transactions;
+DROP TABLE IF EXISTS credit_wallets;
+DROP FUNCTION IF EXISTS update_updated_at();

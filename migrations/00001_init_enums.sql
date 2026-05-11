@@ -1,4 +1,4 @@
--- +migrate Up
+-- +goose Up
 CREATE TYPE credit_tx_type AS ENUM (
     'purchase', 'unlock', 'refund', 'reward', 'subscription_alloc', 'expire', 'admin_adjust'
 );
@@ -24,3 +24,13 @@ CREATE TYPE refund_status AS ENUM (
 CREATE TYPE invoice_status AS ENUM ('draft', 'issued', 'paid', 'voided');
 
 CREATE TYPE outbox_status AS ENUM ('pending', 'published', 'failed');
+
+-- +goose Down
+DROP TYPE IF EXISTS outbox_status;
+DROP TYPE IF EXISTS invoice_status;
+DROP TYPE IF EXISTS refund_status;
+DROP TYPE IF EXISTS billing_cycle;
+DROP TYPE IF EXISTS subscription_status;
+DROP TYPE IF EXISTS payment_method;
+DROP TYPE IF EXISTS payment_status;
+DROP TYPE IF EXISTS credit_tx_type;

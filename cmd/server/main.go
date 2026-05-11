@@ -12,6 +12,7 @@ import (
 
 	"github.com/modami/be-payment-service/config"
 	docs "github.com/modami/be-payment-service/docs/swagger"
+	"github.com/modami/be-payment-service/migrations"
 	"github.com/modami/be-payment-service/module/core/repository/postgres"
 	"github.com/modami/be-payment-service/module/core/storage"
 	"github.com/modami/be-payment-service/module/core/usecases"
@@ -53,6 +54,10 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
+
+	if err := migrations.RunMigrations(db.DB); err != nil {
+		panic(err)
+	}
 
 	uow := storage.NewUnitOfWork(db)
 
